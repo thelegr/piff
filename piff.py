@@ -5,9 +5,9 @@ import re
 from typing import TypeVar, List, Sequence, Tuple, Optional
 from typing_extensions import Literal
 
-def read_entire_file(file_path: str) -> str:
+def read_entire_file(file_path: str) -> List[str]:
     with open(file_path) as f:
-        return f.read()
+        return f.readlines()
 
 Action = Literal['I', 'A', 'R']
 
@@ -108,8 +108,8 @@ class DiffSubcommand(Subcommand):
 
         file_path1, *args = args
         file_path2, *args = args
-        lines1 = read_entire_file(file_path1).splitlines()
-        lines2 = read_entire_file(file_path2).splitlines()
+        lines1 = read_entire_file(file_path1)
+        lines2 = read_entire_file(file_path2)
 
         patch = edit_distance(lines1, lines2)
 
@@ -130,10 +130,10 @@ class PatchSubcommand(Subcommand):
         file_path, *args = args
         patch_path, *args = args
 
-        lines = read_entire_file(file_path).splitlines()
+        lines = read_entire_file(file_path)
         patch = []
         ok = True
-        for (row, line) in enumerate(read_entire_file(patch_path).splitlines()):
+        for (row, line) in enumerate(read_entire_file(patch_path)):
             if len(line) == 0:
                 continue
             m = PATCH_LINE_REGEXP.match(line)
