@@ -5,18 +5,21 @@ import re
 from typing import TypeVar, List, Sequence, Tuple, Optional
 from typing_extensions import Literal
 
+
 def read_entire_file(file_path: str) -> List[str]:
     with open(file_path) as f:
         return f.readlines()
 
+
 Action = Literal['I', 'A', 'R']
 
 # TODO: can we get rid of IGNORE? It's not used in the final patches anyway...
-IGNORE: Action  = 'I'
-ADD: Action     = 'A'
-REMOVE: Action  = 'R'
+IGNORE: Action = 'I'
+ADD: Action = 'A'
+REMOVE: Action = 'R'
 
 T = TypeVar("T")
+
 
 # TODO: can we make T comparable?
 def edit_distance(s1: Sequence[T], s2: Sequence[T]) -> List[Tuple[Action, int, T]]:
@@ -26,8 +29,8 @@ def edit_distance(s1: Sequence[T], s2: Sequence[T]) -> List[Tuple[Action, int, T
     distances = []
     actions = []
     for _ in range(m1 + 1):
-        distances.append([0]*(m2 + 1))
-        actions.append(['-']*(m2 + 1))
+        distances.append([0] * (m2 + 1))
+        actions.append(['-'] * (m2 + 1))
 
     distances[0][0] = 0
     actions[0][0] = IGNORE
@@ -44,13 +47,13 @@ def edit_distance(s1: Sequence[T], s2: Sequence[T]) -> List[Tuple[Action, int, T
 
     for n1 in range(1, m1 + 1):
         for n2 in range(1, m2 + 1):
-            if s1[n1-1] == s2[n2-1]:
-                distances[n1][n2] = distances[n1-1][n2-1]
+            if s1[n1 - 1] == s2[n2 - 1]:
+                distances[n1][n2] = distances[n1 - 1][n2 - 1]
                 actions[n1][n2] = IGNORE
-                continue      # ignore
+                continue  # ignore
 
-            remove = distances[n1-1][n2]
-            add = distances[n1][n2-1]
+            remove = distances[n1 - 1][n2]
+            add = distances[n1][n2 - 1]
 
             distances[n1][n2] = remove
             actions[n1][n2] = REMOVE
@@ -80,7 +83,9 @@ def edit_distance(s1: Sequence[T], s2: Sequence[T]) -> List[Tuple[Action, int, T
     patch.reverse()
     return patch
 
+
 PATCH_LINE_REGEXP: re.Pattern = re.compile("([AR]) (\d+) (.*)")
+
 
 class Subcommand:
     name: str
@@ -95,6 +100,7 @@ class Subcommand:
     def run(self, program: str, args: List[str]) -> int:
         assert False, "not implemented"
         return 0
+
 
 class DiffSubcommand(Subcommand):
     def __init__(self):
@@ -116,6 +122,7 @@ class DiffSubcommand(Subcommand):
         for (action, n, line) in patch:
             print(f"{action} {n} {line}")
         return 0
+
 
 class PatchSubcommand(Subcommand):
     def __init__(self):
@@ -159,6 +166,7 @@ class PatchSubcommand(Subcommand):
                 f.write('\n')
         return 0
 
+
 class HelpSubcommand(Subcommand):
     def __init__(self):
         super().__init__("help", "[subcommand]", "print this help message")
@@ -181,11 +189,13 @@ class HelpSubcommand(Subcommand):
         suggest_closest_subcommand_if_exists(subcmd_name)
         return 1
 
+
 SUBCOMMANDS: List[Subcommand] = [
     DiffSubcommand(),
     PatchSubcommand(),
     HelpSubcommand(),
 ]
+
 
 def usage(program: str) -> None:
     print(f"Usage: {program} <SUBCOMMAND> [OPTIONS]")
@@ -196,6 +206,7 @@ def usage(program: str) -> None:
         command = f'{subcmd.name} {subcmd.signature}'.ljust(width)
         print(f'    {command}    {subcmd.description}')
 
+
 def suggest_closest_subcommand_if_exists(subcmd_name: str) -> None:
     candidates = [subcmd.name
                   for subcmd in SUBCOMMANDS
@@ -205,11 +216,13 @@ def suggest_closest_subcommand_if_exists(subcmd_name: str) -> None:
         for name in candidates:
             print(f"    {name}")
 
+
 def find_subcommand(subcmd_name: str) -> Optional[Subcommand]:
     for subcmd in SUBCOMMANDS:
         if subcmd.name == subcmd_name:
             return subcmd
     return None
+
 
 def main() -> int:
     assert len(sys.argv) > 0
@@ -230,6 +243,7 @@ def main() -> int:
     print(f"ERROR: unknown subcommand {subcmd_name}")
     suggest_closest_subcommand_if_exists(subcmd_name)
     return 1
+
 
 # TODO: some sort of automatic testing
 # TODO: verify the lines of R actions
