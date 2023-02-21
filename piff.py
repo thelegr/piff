@@ -1,9 +1,18 @@
 #!/usr/bin/env python3
 
-import sys
 import re
-from typing import TypeVar, List, Sequence, Tuple, Optional
+import sys
+from abc import abstractmethod
+from typing import TypeVar, List, Sequence, Tuple, Optional, Protocol
 from typing_extensions import Literal
+
+CT = TypeVar("CT", bound="Comparable")
+
+
+class Comparable(Protocol):
+    @abstractmethod
+    def __lt__(self: CT, other: CT) -> bool:
+        pass
 
 
 def read_entire_file(file_path: str) -> List[str]:
@@ -18,11 +27,10 @@ IGNORE: Action = 'I'
 ADD: Action = 'A'
 REMOVE: Action = 'R'
 
-T = TypeVar("T")
 
-
-# TODO: can we make T comparable?
-def edit_distance(s1: Sequence[T], s2: Sequence[T]) -> List[Tuple[Action, int, T]]:
+# FIXED: can we make T comparable?
+# - Yes, by defining the Comparable Protocol (see lines 9-28)
+def edit_distance(s1: Sequence[CT], s2: Sequence[CT]) -> List[Tuple[Action, int, CT]]:
     m1 = len(s1)
     m2 = len(s2)
 
