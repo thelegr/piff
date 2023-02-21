@@ -2,8 +2,30 @@
 
 import sys
 import re
-from typing import TypeVar, List, Sequence, Tuple, Optional
+from abc import abstractmethod
+from typing import TypeVar, List, Sequence, Tuple, Optional, Protocol, Any
 from typing_extensions import Literal
+
+CT = TypeVar("CT", bound="Comparable")
+
+
+class Comparable(Protocol):
+    @abstractmethod
+    def __eq__(self, other: Any) -> bool:
+        pass
+
+    @abstractmethod
+    def __lt__(self: CT, other: CT) -> bool:
+        pass
+
+    def __gt__(self: CT, other: CT) -> bool:
+        return (not self < other) and self != other
+
+    def __le__(self: CT, other: CT) -> bool:
+        return self < other or self == other
+
+    def __ge__(self: CT, other: CT) -> bool:
+        return not self < other
 
 
 def read_entire_file(file_path: str) -> List[str]:
@@ -18,11 +40,10 @@ IGNORE: Action = 'I'
 ADD: Action = 'A'
 REMOVE: Action = 'R'
 
-T = TypeVar("T")
 
-
-# TODO: can we make T comparable?
-def edit_distance(s1: Sequence[T], s2: Sequence[T]) -> List[Tuple[Action, int, T]]:
+# FIXED: can we make T comparable?
+# - Yes, by defining the Comparable Protocol (see lines 9-28)
+def edit_distance(s1: Sequence[CT], s2: Sequence[CT]) -> List[Tuple[Action, int, CT]]:
     m1 = len(s1)
     m2 = len(s2)
 
